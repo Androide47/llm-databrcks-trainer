@@ -17,3 +17,12 @@ targets:
   # prod:
   #   workspace:
   #     host: https://dbc-d4d39d56-a691.cloud.databricks.com
+
+resources:
+  jobs:
+    curation_pipeline_job:
+      name: "LLM Curation Pipeline"
+      tasks:
+        - task_key: ingest_raw_data
+          notebook_task:
+            notebook_path: ./src/1_ingestion.py
