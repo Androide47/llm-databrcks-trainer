@@ -1,7 +1,7 @@
 import dlt
 from pyspark.sql.functions import *
 
-source_path = "s3://amzn-s2-androide-bucket/raw"
+source_path = "s3://amzn-s2-androide-bucket/raw/"
 
 @dlt.table(
     name="raw_llm_data",
@@ -20,5 +20,6 @@ def raw_llm_data():
         .option("cloudFiles.inferColumnTypes", "true")
         .load(source_path)
         .withColumn("ingestion_time", current_timestamp())
-        .withColumn("source_file", input_file_name())
+        .withColumn("source_file", col("_metadata.file_path"))
+        .drop("_metadata")
     )
