@@ -19,10 +19,22 @@ targets:
   #     host: https://dbc-d4d39d56-a691.cloud.databricks.com
 
 resources:
+  pipelines:
+    llm_curation_pipeline:
+      name: "LLM Data Curation Pipeline"
+      catalog: llm_curation
+      schema: bronze
+      serverless: true
+      libraries:
+        - file:
+            path: ./src/01_ingestion.py
+      development: true
+      continuous: false
+
   jobs:
-    curation_pipeline_job:
-      name: "LLM Curation Pipeline"
-      tasks:
-        - task_key: ingest_raw_data
-          notebook_task:
-            notebook_path: ./src/1_ingestion.py
+      curation_workflow:
+        name: "LLM Curation Workflow"
+        tasks:
+          - task_key: run_dlt_pipeline
+            pipeline_task:
+              pipeline_id: ${resources.pipelines.llm_curation_pipeline.id}

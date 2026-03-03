@@ -3,10 +3,10 @@ from pyspark.sql.functions import *
 
 source_path = "s3://amzn-s2-androide-bucket/raw"
 
-@dtl.table(
+@dlt.table(
     name="raw_llm_data",
     comment="Raw text data ingested from S3 for LLM training",
-    table_properties{
+    table_properties={
         "quality": "bronze",
         "pipelines.autoOptimize.manage": "ture"
     }
