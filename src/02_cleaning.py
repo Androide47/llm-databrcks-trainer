@@ -13,7 +13,7 @@ def cleaned_llm_data():
     df_= dlt.read("raw_llm_data")
     df = df_.filter(col("value").isNotNull()) \
         .withColumn("text", trim(col("value"))) \
-        .filtering(length(col("text")) > 50)
+        .filter(length(col("text")) > 50)
     html_regex = "<[^>]*>"
     df = df.withColumn("text", regexp_replace(col("text"), html_regex, ""))
     
