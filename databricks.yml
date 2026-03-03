@@ -28,6 +28,8 @@ resources:
       libraries:
         - file:
             path: ./src/01_ingestion.py
+        - file:
+            path: ./src/02_cleaning.py
       development: true
       continuous: false
 
