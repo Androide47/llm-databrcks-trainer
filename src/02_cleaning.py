@@ -1,5 +1,13 @@
 import dlt
+import pandas as pd
+from detoxify import Detoxify
 from pyspark.sql.functions import *
+
+@pandas_udf("float")
+def detect_toxicity(text: pd.Series) -> pd.Series:
+    model = Detoxify("original")
+    results = model.predict(batch.tolist())
+    return pd.Series(results['toxicity'])
 
 @dlt.table(
     name="cleaned_llm_data",
@@ -14,15 +22,9 @@ def cleaned_llm_data():
     df = df_.filter(col("value").isNotNull()) \
         .withColumn("text", trim(col("value"))) \
         .filter(length(col("text")) > 50)
-    html_regex = "<[^>]*>"
-    df = df.withColumn("text", regexp_replace(col("text"), html_regex, ""))
     
-    email_regex = fr"[\w\.-]+@[\w\.-]+\.\w+"
-    df = df.withColumn("text", regexp_replace(col("text"), email_regex, "[EMAIL_MASKED]"))
+    df = df.withColumn("toxicity", detect_toxicity(col("text")))
     
     return df.select(
-        "text",
-        "ingestion_time",
-        "source_file",
-        sha2(col("text"), 256).alias("text_hash")
+        df.filter(col("toxicity") < 0.8)
     )
