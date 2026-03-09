@@ -25,6 +25,4 @@ def cleaned_llm_data():
     
     df = df.withColumn("toxicity", detect_toxicity(col("text")))
     
-    return df.select(
-        df.filter(col("toxicity") < 0.8)
-    )
+    return df.filter(col("toxicity") < 0.8)
