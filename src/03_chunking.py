@@ -1,6 +1,6 @@
 import dlt
 from pyspark.sql.functions import *
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import pandas as pd
 
 # Define the splitter logic
@@ -29,8 +29,7 @@ def gold_llm_chunks():
         .withColumn("chunks", chunk_text_udf(col("text")))
         .withColumn("chunk", explode(col("chunks")))
         .select(
-            "soure_file",
-            "content_hash",
+            "source_file",
             "chunk",
             sha2(col("chunk"), 256).alias("chunk_id")
         )

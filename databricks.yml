@@ -28,7 +28,7 @@ resources:
       environment:
         dependencies:
           - detoxify
-          - langchain
+          - langchain_text_splitters
           - tiktoken==0.8.0
       libraries:
         - file:
