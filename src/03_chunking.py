@@ -25,7 +25,7 @@ def chunk_text_udf(text: pd.Series) -> pd.Series:
 
 def gold_llm_chunks():
     return(
-        dlt.read("cleaned_llm_data")
+        dlt.read("llm_curation.silver.cleaned_llm_data")
         .withColumn("chunks", chunk_text_udf(col("text")))
         .withColumn("chunk", explode(col("chunks")))
         .select(

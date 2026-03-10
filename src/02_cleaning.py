@@ -18,7 +18,7 @@ def detect_toxicity(text: pd.Series) -> pd.Series:
 )
 #Cleaning data from raw_llm_data
 def cleaned_llm_data():
-    df_= dlt.read("raw_llm_data")
+    df_= dlt.read("llm_curation.bronze.raw_llm_data")
     df = df_.filter(col("value").isNotNull()) \
         .withColumn("text", trim(col("value"))) \
         .filter(length(col("text")) > 50)

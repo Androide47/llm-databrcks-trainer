@@ -20,30 +20,55 @@ targets:
 
 resources:
   pipelines:
-    llm_curation_pipeline:
-      name: "LLM Data Curation Pipeline"
+    pipeline_bronze:
+      name: "LLM_Pipeline_Bronze"
       catalog: llm_curation
       schema: bronze
       serverless: true
-      environment:
-        dependencies:
-          - detoxify
-          - langchain_text_splitters
-          - tiktoken==0.8.0
       libraries:
         - file:
             path: ./src/01_ingestion.py
-        - file:
-            path: ./src/02_cleaning.py
-        - file:
-            path: ./src/03_chunking.py
-      development: true
-      continuous: false
 
-  jobs:
-      curation_workflow:
-        name: "LLM Curation Workflow"
-        tasks:
-          - task_key: run_dlt_pipeline
-            pipeline_task:
-              pipeline_id: ${resources.pipelines.llm_curation_pipeline.id}
+    pipeline_silver:
+        name: "LLM_Pipeline_Silver"
+        catalog: llm_curation
+        schema: silver
+        environment:
+          dependencies:
+            - detoxify==0.1.1
+
+        serverless: true
+        libraries:
+          - file:
+              path: ./src/02_cleaning.py
+    pipeline_gold:
+        name: "LLM_Pipeline_Gold"
+        catalog: llm_curation
+        schema: gold
+        environment:
+          dependencies:
+            - langchain_text_splitters
+            - tiktoken==0.8.0
+        serverless: true
+        libraries:
+          - file:
+              path: ./src/03_chunking.py
+
+
+jobs:
+    curation_workflow:
+      name: "LLM Curation Workflow"
+      tasks:
+        - task_key: bronze_layer
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.pipeline_bronze.id}
+        - task_key: silver_layer
+          depends_on:
+            - task_key: bronze_layer
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.pipeline_silver.id}
+        - task_key: gold_layer
+          depends_on:
+            - task_key: silver_layer
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.pipeline_gold.id}
