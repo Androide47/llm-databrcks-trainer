@@ -1,28 +1,24 @@
 import dlt
-import pandas as pd
-from detoxify import Detoxify
-from pyspark.sql.functions import *
+from pyspark.sql.functions import col, length, lit, trim
 
-@pandas_udf("float")
-def detect_toxicity(text: pd.Series) -> pd.Series:
-    model = Detoxify("original")
-    results = model.predict(batch.tolist())
-    return pd.Series(results['toxicity'])
 
 @dlt.table(
     name="cleaned_llm_data",
-    comment="Silver layer: Cleaned deduplicated, and PII-masked text data",
+    comment="Silver layer: cleaned text. ML toxicity scoring skipped (serverless memory); simple length/quality filters only.",
     table_properties={
         "quality": "silver",
-    }
+    },
 )
-#Cleaning data from raw_llm_data
 def cleaned_llm_data():
-    df_= dlt.read("llm_curation.bronze.raw_llm_data")
-    df = df_.filter(col("value").isNotNull()) \
-        .withColumn("text", trim(col("value"))) \
-        .filter(length(col("text")) > 50)
-    
-    df = df.withColumn("toxicity", detect_toxicity(col("text")))
-    
-    return df.filter(col("toxicity") < 0.8)
+    """Read bronze UC table; trim and filter by length. No Detoxify / PyTorch."""
+    df_ = spark.read.table("llm_curation.`01_bronze`.raw_llm_data")
+    return (
+        df_.filter(col("value").isNotNull())
+        .withColumn("text", trim(col("value")))
+        # Drop short lines (noise)
+        .filter(length(col("text")) > lit(50))
+        # Cap very long rows to keep chunking / serverless UDFs stable
+        .filter(length(col("text")) < lit(200_000))
+        # Simple spam heuristic: drop rows with 25+ repeated identical characters
+        .filter(~col("text").rlike(r"(.)\1{24}"))
+    )

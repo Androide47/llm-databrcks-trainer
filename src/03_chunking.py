@@ -1,9 +1,8 @@
-import dlt
 from pyspark.sql.functions import *
+import dlt
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import pandas as pd
 
-# Define the splitter logic
 
 def chunk_text(text):
     splitter = RecursiveCharacterTextSplitter(
@@ -25,7 +24,7 @@ def chunk_text_udf(text: pd.Series) -> pd.Series:
 
 def gold_llm_chunks():
     return(
-        dlt.read("llm_curation.silver.cleaned_llm_data")
+        spark.read.table("llm_curation.`02_silver`.cleaned_llm_data")
         .withColumn("chunks", chunk_text_udf(col("text")))
         .withColumn("chunk", explode(col("chunks")))
         .select(
