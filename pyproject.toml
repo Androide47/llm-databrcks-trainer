@@ -1,0 +1,24 @@
+[project]
+name = "llm-databrcks-trainer"
+version = "0.0.0"
+description = "Databricks LLM curation pipelines"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+# Databricks injects `spark` into the module namespace for DLT pipeline files.
+"src/01_ingestion.py" = ["F821"]
+"src/02_cleaning.py" = ["F821"]
+"src/03_chunking.py" = ["F821"]
